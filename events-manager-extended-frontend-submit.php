@@ -1,0 +1,469 @@
+<?php
+/*
+Plugin Name: Events Manager Extended Frontend Submit
+Plugin URI: http://bitbucket.org/halles/events-manager-extended-frontend-submit/
+Description: Displays a form in a page where users can submit events for publishing. Heavily Based on Code from malo.conny at http://bueltge.de/
+Author: Matías Halles
+Version: 0.1
+Author URI: http://halles.cl/
+License: GNU General Public License
+*/
+
+/* License Stuff Goes Here */
+
+/**
+ *  Default Data used by the plugin
+ *
+ */
+
+$emefs_event_data = array(
+	"event_name" => '',
+	"event_status" => 5,
+	"event_start_date" => '',
+	"event_end_date" => '',
+	"event_start_time" => '00:00',
+	"event_end_time" => '00:00',
+	"event_rsvp" => 0,
+	"rsvp_number_days" => 0,
+	"registration_requires_approval" => 0,
+	"registration_wp_users_only" => 0,
+	"event_seats" => 0,
+	"event_contactperson_id" => '-1',
+	"event_notes" => '',
+	'event_page_title_format' => '',
+	'event_single_event_format' => '',
+	'event_contactperson_email_body' => '',
+	'event_respondent_email_body' => '',
+	'event_url' => '',
+	'event_category_ids' => '',
+	'event_attributes' => 'a:0:{}',
+	'location_id' => '',
+);
+
+$emefs_event_errors = array(
+	"event_name" => false,
+	"event_status" => false,
+	"event_start_date" => false,
+	"event_end_date" => false,
+	"event_start_time" => false,
+	"event_end_time" => false,
+	"event_time" => false,
+	"event_rsvp" => false,
+	"rsvp_number_days" => false,
+	"registration_requires_approval" => false,
+	"registration_wp_users_only" => false,
+	"event_seats" => false,
+	"event_contactperson_id" => false,
+	"event_notes" => false,
+	'event_page_title_format' => false,
+	'event_single_event_format' => false,
+	'event_contactperson_email_body' => false,
+	'event_respondent_email_body' => false,
+	'event_url' => false,
+	'event_category_ids' => false,
+	'event_attributes' => false,
+	'location_id' => false,
+);
+
+$emefs_has_errors = false;
+
+class EMEFS{
+
+	/**
+	 * Function that processes the form submitted data.
+	 *
+	 */
+
+	function processForm(){
+	
+		global $emefs_event_errors, $emefs_event_data, $emefs_has_errors;
+				
+		if( 'POST' == $_SERVER['REQUEST_METHOD'] && !empty( $_POST['event']['action'] ) && wp_verify_nonce( $_POST['new-event'], 'action_new_event' ) ) {
+			
+			$hasErrors = false;
+			
+			$event_data = $_POST['event'];
+			
+			if ( isset($event_data['event_name']) && !empty($event_data['event_name']) ) { 
+				$event_data['event_name'] = esc_attr( $event_data['event_name'] );
+			} else {
+				$emefs_event_errors['event_name'] = __('Please enter a name for the event');
+			}
+			
+			if ( isset($event_data['event_start_date']) && !empty($event_data['event_start_date']) ) { 
+				$event_data['event_start_date'] = esc_attr( $event_data['event_start_date'] );
+			} else {
+				$emefs_event_errors['event_start_date'] = __('Enter the event\'s start date');
+			}
+			
+			if ( isset($event_data['event_start_time']) && !empty($event_data['event_start_time']) ) { 
+				$event_data['event_start_time'] = esc_attr( $event_data['event_start_time'] );
+			} else {
+				$event_data['event_start_time'] = '00:00';
+			}
+			
+			if ( isset($event_data['event_end_date']) && !empty($event_data['event_end_date']) ) { 
+				$event_data['event_end_date'] = esc_attr( $event_data['event_end_date'] );
+			} else {
+				$event_data['event_end_date'] = $event_data['event_start_date'];
+			}
+			
+			$time_start = strtotime($event_data['event_start_date'].' '.$event_data['event_start_time']);
+			$time_end = strtotime($event_data['event_end_date'].' '.$event_data['event_end_time']);
+			
+			if(!$time_start){
+				$emefs_event_errors['event_start_time'] = __('Check the start\'s date and time');
+			}
+			
+			if(!$time_end){
+				$emefs_event_errors['event_end_time'] =  __('Check the end\'s date and time');
+			}
+			
+			if($time_start && $time_end && $time_start > $time_end){
+				$emefs_event_errors['event_time'] =  __('The event\'s end must be <strong>after</strong> the event\'s start');
+			}
+			
+			if ( isset($event_data['event_end_time']) && !empty($event_data['event_end_time']) ) { 
+				$event_data['event_end_time'] = esc_attr( $event_data['event_end_time'] );
+			} else {
+				$event_data['event_end_time'] = $event_data['event_start_time'];
+			}
+			
+			if ( isset($event_data['event_notes']) && !empty($event_data['event_notes']) ) { 
+				$event_data['event_notes'] = esc_attr( $event_data['event_notes'] ); 
+			} else { 
+				$emefs_event_errors['event_notes'] = __('Please enter a description for the event'); 
+			}
+			
+			if ( isset($event_data['event_category_ids']) && !empty($event_data['event_category_ids']) && $event_data['event_category_ids'] != 0 ) { 
+				$event_data['event_category_ids'] = (int) esc_attr( $event_data['event_category_ids'] ); 
+			} else { 
+				$emefs_event_errors['event_category_ids'] = __('Please select an Event Category');
+			}
+			 
+			$event_data['event_contactperson_email_body'] = esc_attr( $event_data['event_contactperson_email_body'] );
+			
+			$event_data['event_url'] = esc_url( $event_data['event_url'] );
+			
+			foreach($emefs_event_errors as $error){
+				if($error){
+					$emefs_has_errors = true;
+					break;
+				}	
+			}
+			
+			if ( !$emefs_has_errors ) {
+			
+				$emefs_event_data_compiled = array_merge($emefs_event_data, $event_data);
+				$emefs_event_data_compiled['event_start_time'] .= ':00';
+				$emefs_event_data_compiled['event_end_time'] .= ':00';
+				unset($emefs_event_data_compiled['action']);
+				
+				if($event_id = eme_db_insert_event($emefs_event_data_compiled)){
+					$events_page_id = get_option('eme_events_page' );
+					wp_redirect( get_permalink($events_page_id).'/success' );
+					exit;
+				}else{
+					$emefs_has_errors = true;
+				}
+				
+			}else{
+				$emefs_event_data = array_merge($emefs_event_data, $event_data);	
+			}
+		
+		}
+		
+	}
+	
+	/** 
+	 *  Function that should process submitted location data.
+	 *  Right now, the form, nor the process, are ready for capturing this information
+	 *  
+	 */
+	
+	function processLocation(){
+
+		if ( isset($_POST['location_name']) && '' != $_POST['location_name'] ) { 
+			$location_name = esc_attr( $_POST['location_name'] ); 
+		} else { 
+			$location_name = NULL; 
+		}
+		
+		if ( isset($_POST['location_address']) && '' != $_POST['location_address'] ) { 
+			$location_address = esc_attr( $_POST['location_address'] ); 
+		} else { 
+			$location_address = NULL; 
+		}
+		
+		if ( isset($_POST['location_town']) && '' != $_POST['location_town'] ) { 
+			$location_town = esc_attr( $_POST['location_town'] ); 
+		} else { 
+			$location_town = NULL; 
+		}
+		// optionale Felder
+		if ( isset($_POST['location_description']) && '' != $_POST['location_description'] ) { 
+			$location_description = esc_attr( $_POST['location_description'] ); 
+		} else { 
+			$location_description = NULL; 
+		}
+		$location_latitude = NULL;
+		$location_longitude = NULL;
+		
+		if ( isset($location_name) && isset($location_address) && isset($location_town) ) {
+			
+			$location = array (
+				'location_name' => $location_name,
+				'location_address' => $location_address,
+				'location_town' => $location_town,
+				'location_latitude' => $location_latitude,
+				'location_longitude' => $location_longitude,
+				'location_description' => $location_description
+			);
+			// get locations
+			$locations_table = $wpdb->prefix . LOCATIONS_TBNAME;
+			$location_town = $location['location_town'];
+			$location_address = $location['location_address'];
+			$sql = "SELECT * FROM $locations_table WHERE 
+				location_town = '$location_town' AND
+				location_address = '$location_address'";
+			$old_location = $wpdb->get_row($sql, ARRAY_A);
+			
+			if ( $old_location['location_id'] ) {
+				$new_location = $old_location;
+			} else {
+				$new_location = eme_insert_location($location);
+			}
+			
+		} else {
+			$new_location['location_id'] = NULL;
+		}
+	}
+	
+		
+	/**
+	 *  Prints out the Submitting Form
+	 *
+	 */
+	
+	function deployForm($atts, $content){
+		global $emefs_event_errors, $emefs_event_data;
+		ob_start();
+		include('templates/form.php');
+		$form = ob_get_clean();
+		return $form;
+	}
+	
+
+	
+	/**
+	 *  Prints fields which act as security and blocking methods
+	 *  preventing unwanted submitions.
+	 *
+	 */
+	
+	function end_form($submit = 'Submit Event'){
+		echo sprintf('<input type="submit" value="%s" id="submit" />', __($submit));
+		echo '<input type="hidden" name="event[action]" value="new_event" />';
+		wp_nonce_field( 'action_new_event', 'new-event' );
+	}
+	
+	/**
+	 *  Prints event data fields (not location data)
+	 *
+	 */
+	
+	function field($field = false, $type = 'text', $field_id = false){
+		global $emefs_event_data;
+		
+		if(!$field || !isset($emefs_event_data[$field]))
+			return false;
+		
+		
+		switch($field){
+			case 'event_notes':
+				$type = 'textarea';
+				break;
+			case 'event_category_ids':
+				$type = ($type != 'radio')?'select':'radio';
+				break;
+			case 'event_start_time':
+			case 'event_end_time':
+				$more = 'readonly="readonly"';
+			default:
+				$type = 'text';
+		}
+		
+		$html_by_type = array(
+			'text' => '<input type="text" id="%s" name="event[%s]" value="%s" %s/>',
+			'textarea' => '<textarea id="%s" name="event[%s]">%s</textarea>',
+		);
+		
+		$field_id = ($field_id)?$field_id:$field;
+	
+		switch($type){
+			case 'text':
+			case 'textarea':
+				echo sprintf($html_by_type[$type], $field_id, $field, $emefs_event_data[$field], $more);
+				break;
+			case 'select':
+				echo self::getCategoriesSelect();
+				break;
+			case 'radio':
+				echo self::getCategoriesRadio();
+				break;
+		}
+	}
+	
+	/**
+	 *  Prints event data fields error messages (not location data)
+	 *
+	 */
+	
+	function error($field = false, $html = '<span class="error">%s</span>'){
+		global $emefs_event_errors;
+		if(!$field || !$emefs_event_errors[$field])
+			return false;
+		echo sprintf($html, $emefs_event_errors[$field]);
+	}
+	
+	/**
+	 *  Wrapper function to get categories form eme
+	 *
+	 */
+	
+	function getCategories(){
+		return eme_get_categories();
+	}
+	
+	/**
+	 *  Function that creates and returns a radio input set from the existing categories
+	 *
+	 */
+	
+	function getCategoriesRadio(){
+		global $emefs_event_data;
+		
+		$categories = self::getCategories();
+		$category_radios = array();
+		if ( $categories ) {
+			$category_radios[] = '<input type="hidden" name="event[event_category_ids]" value="0" />';
+			foreach ($categories as $category){
+				$checked = ($emefs_event_data['event_category_ids'] == $category['category_id'])?'checked="checked"':'';
+				$category_radios[] = sprintf('<input type="radio" id="event_category_ids_%s" value="%s" name="event[event_category_ids]" %s />', $category['category_id'], $category['category_id'], $checked);
+				$category_radios[] = sprintf('<label for="event_category_ids_%s">%s</label><br/>', $category['category_id'], $category['category_name']);
+			}
+		}
+		
+		return implode("\n", $category_radios);	
+	}
+	
+	/**
+	 *  Prints what self::getCategoriesRadio returns
+	 *
+	 */
+	
+	function categoriesRadio(){
+		echo self::getCategoriesRadio();
+	}
+	
+	/**
+	 *  Function that creates and returns a select input set from the existing categories
+	 *
+	 */
+	
+	function getCategoriesSelect($select_id = 'event_category_ids'){
+		global $emefs_event_data;
+		
+		$category_select = array();
+		$category_select[] = sprintf('<select id="%s" name="event[event_category_ids]" >', $select_id);
+		$categories = self::getCategories();
+		if ( $categories ) {
+			$category_select[] = sprintf('<option value="%s">%s</option>', 0, '--');
+			foreach ($categories as $category){
+				$selected = ($emefs_event_data['event_category_ids'] == $category['category_id'])?'selected="selected"':'';
+				$category_select[] = sprintf('<option value="%s" %s>%s</option>', $category['category_id'], $selected, $category['category_name']);
+			}
+		}
+		$category_select[] = '</select>';
+		return implode("\n", $category_select);
+		
+	}
+	
+	/**
+	 *  Prints what self::getCategoriesSelect returns
+	 *
+	 */
+	
+	function categoriesSelect(){
+		echo self::getCategoriesSelect();
+	}
+	
+	/**
+	 *  Sets up style and scripts assets the plugin uses
+	 *
+	 */
+
+	function registerAssets(){
+		
+		wp_register_script( 'jquery-ui-datepicker', EME_PLUGIN_URL.'js/jquery-ui-datepicker/ui.datepicker.js', array('jquery-ui-core'));
+		wp_register_script( 'jquery-timeentry', EME_PLUGIN_URL.'js/timeentry/jquery.timeentry.js', array('jquery'));
+		
+		wp_enqueue_style( 'emefs', WP_PLUGIN_URL.'/events-manager-extended-frontend-submit/templates/emefs.css' );	
+		wp_enqueue_style( 'jquery-ui-datepicker', EME_PLUGIN_URL.'js/jquery-ui-datepicker/ui.datepicker.css' );	
+		
+	}
+	
+	/**
+	 *  Deliver scripts for output on the theme 
+	 *
+	 */
+	
+	function printScripts(){
+		if(!is_admin()){
+			wp_enqueue_script( 'jquery-ui-datepicker' );
+			wp_enqueue_script( 'jquery-timeentry' );
+		}
+	}
+	
+	/**
+	 *  Deliver styles for output on the theme 
+	 *
+	 */
+	
+	function printStyles(){
+		if(!is_admin()){
+			wp_enqueue_style( 'emefs' );
+			wp_enqueue_style( 'jquery-ui-datepicker' );
+		}
+	}
+	
+	/**
+	 *  Prints script that starts up the Date and Time Pickers 
+	 *
+	 */
+	
+	function printDateTimeStartup() {
+	?>
+		<script type="text/javascript">
+		jQuery(document).ready( function($){
+			$("#event_start_date, #event_end_date").datepicker({ dateFormat: 'yy-mm-dd' });
+			$('#event_start_time, #event_end_time').timeEntry({ hourText: 'Hour', minuteText: 'Minute', show24Hours: true, spinnerImage: '' });
+		});
+		</script>
+	<?php
+	}
+
+}
+
+/** Process Form Submited Data**/
+add_action('init', array('EMEFS', 'processForm'), 2);
+
+/** Display Form Shortcode & Wrapper **/
+add_shortcode( 'submit_event_form', 'emefs_deploy_form');
+function emefs_deploy_form( $atts, $content ) {	return EMEFS::deployForm( $atts, $content); }
+
+/** Scripts and Styles **/
+add_action( 'init', array('EMEFS', 'registerAssets') );
+add_action( 'wp_print_scripts', array('EMEFS', 'printScripts') );
+add_action( 'wp_print_styles', array('EMEFS', 'printStyles') );
+add_action( 'wp_footer', array('EMEFS','printDateTimeStartup'), 20 );

@@ -1,0 +1,56 @@
+form#new_post{
+	display: block;
+	overflow: hidden;
+	width: 100%;
+}
+
+form#new_post > div,
+form#new_post > fieldset{
+	margin-bottom: 1.5em;
+}
+
+form#new_post #event_name, 
+form#new_post #event_notes,
+form#new_post #event_contactperson_email_body,
+form#new_post #event_url{
+	width: 96%;
+}
+
+form#new_post #event_notes{
+	height: 120px;
+}
+
+form#new_post #submit{
+	width: 200px;
+	text-align: center;
+}
+
+form#new_post label {
+	font-weight: normal;
+	font-size: small;
+	padding: 0;
+}
+
+form#new_post label small,
+form#new_post legend small{
+	font-size: smaller;
+	color: gray;
+}
+
+form#new_post fieldset {
+	border: 1px solid #F1F1F1;
+	width: 96%;
+	padding: 2px;
+}
+
+form#new_post fieldset fieldset{
+	width: 47%;
+	float: left;
+	margin: 1%;
+}
+
+form#new_post span.error{
+	font-size: smaller;
+	font-weight: bold;
+	color: #C00;
+}
