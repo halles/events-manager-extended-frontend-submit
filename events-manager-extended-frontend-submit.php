@@ -247,8 +247,16 @@ class EMEFS{
 	
 	function deployForm($atts, $content){
 		global $emefs_event_errors, $emefs_event_data;
+		
+		$filename = locate_template(array(
+			'events-manager-extended-frontend-submit/form.php',
+			'emefs/form.php'
+		));
+		if(empty($filename)){
+			$filename = 'templates/form.php';
+		}
 		ob_start();
-		include('templates/form.php');
+		require($filename);
 		$form = ob_get_clean();
 		return $form;
 	}
@@ -408,7 +416,19 @@ class EMEFS{
 		wp_register_script( 'jquery-ui-datepicker', EME_PLUGIN_URL.'js/jquery-ui-datepicker/ui.datepicker.js', array('jquery-ui-core'));
 		wp_register_script( 'jquery-timeentry', EME_PLUGIN_URL.'js/timeentry/jquery.timeentry.js', array('jquery'));
 		
-		wp_enqueue_style( 'emefs', WP_PLUGIN_URL.'/events-manager-extended-frontend-submit/templates/emefs.css' );	
+		
+		$style_filename = locate_template(array(
+			'events-manager-extended-frontend-submit/style.css',
+			'emefs/style.css',
+		));
+		
+		if(empty($style_filename)){
+			$style_filename = WP_PLUGIN_URL.'/events-manager-extended-frontend-submit/templates/style.css';
+		}else{
+			$style_filename = get_bloginfo('url').'/'.str_replace(ABSPATH, '', $style_filename);
+		}
+		
+		wp_enqueue_style( 'emefs', $style_filename );
 		wp_enqueue_style( 'jquery-ui-datepicker', EME_PLUGIN_URL.'js/jquery-ui-datepicker/ui.datepicker.css' );	
 		
 	}
