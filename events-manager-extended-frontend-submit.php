@@ -38,6 +38,11 @@ $emefs_event_data = array(
 	'event_category_ids' => '',
 	'event_attributes' => 'a:0:{}',
 	'location_id' => '',
+	'location_name' => '',
+	'location_address' => '',
+	'location_town' => '',
+	'location_latitude' => 0,
+	'location_longitude' => 0,
 );
 
 $emefs_event_errors = array(
@@ -63,6 +68,11 @@ $emefs_event_errors = array(
 	'event_category_ids' => false,
 	'event_attributes' => false,
 	'location_id' => false,
+	'location_name' => false,
+	'location_address' => false,
+	'location_town' => false,
+	'location_latitude' => false,
+	'location_longitude' => false,
 );
 
 $emefs_has_errors = false;
@@ -294,6 +304,10 @@ class EMEFS{
 			case 'event_category_ids':
 				$type = ($type != 'radio')?'select':'radio';
 				break;
+			case 'location_latitude':
+			case 'location_longitude':
+				$type = 'hidden';
+				break;
 			case 'event_start_time':
 			case 'event_end_time':
 				$more = 'readonly="readonly"';
@@ -304,6 +318,7 @@ class EMEFS{
 		$html_by_type = array(
 			'text' => '<input type="text" id="%s" name="event[%s]" value="%s" %s/>',
 			'textarea' => '<textarea id="%s" name="event[%s]">%s</textarea>',
+			'hidden' => '<input type="hidden" id="%s" name="event[%s]" value="%s" %s />',
 		);
 		
 		$field_id = ($field_id)?$field_id:$field;
@@ -311,6 +326,7 @@ class EMEFS{
 		switch($type){
 			case 'text':
 			case 'textarea':
+			case 'hidden':
 				echo sprintf($html_by_type[$type], $field_id, $field, $emefs_event_data[$field], $more);
 				break;
 			case 'select':
@@ -416,7 +432,14 @@ class EMEFS{
 		wp_register_script( 'jquery-ui-datepicker', EME_PLUGIN_URL.'js/jquery-ui-datepicker/ui.datepicker.js', array('jquery-ui-core'));
 		wp_register_script( 'jquery-timeentry', EME_PLUGIN_URL.'js/timeentry/jquery.timeentry.js', array('jquery'));
 		
+		wp_register_script( 'google-maps', 'http://maps.google.com/maps/api/js?v=3.1&sensor=false');
 		
+		wp_register_script( 'jquery-autocomplete-bgiframe', EME_PLUGIN_URL.'js/jquery-autocomplete/lib/jquery.bgiframe.min.js', array('jquery'));
+		wp_register_script( 'jquery-autocomplete-ajaxqueue', EME_PLUGIN_URL.'js/jquery-autocomplete/lib/jquery.ajaxQueue.js', array('jquery'));
+		wp_register_script( 'jquery-autocomplete', EME_PLUGIN_URL.'js/jquery-autocomplete/jquery.autocomplete.min.js', array('jquery', 'jquery-autocomplete-bgiframe', 'jquery-autocomplete-ajaxqueue'));
+		
+		wp_register_script( 'emefs', WP_PLUGIN_URL.'/events-manager-extended-frontend-submit/emefs.js', array('jquery-ui-datepicker', 'jquery-timeentry', 'jquery-autocomplete', 'google-maps'));
+      	
 		$style_filename = locate_template(array(
 			'events-manager-extended-frontend-submit/style.css',
 			'emefs/style.css',
@@ -430,6 +453,7 @@ class EMEFS{
 		
 		wp_enqueue_style( 'emefs', $style_filename );
 		wp_enqueue_style( 'jquery-ui-datepicker', EME_PLUGIN_URL.'js/jquery-ui-datepicker/ui.datepicker.css' );	
+		wp_enqueue_style( 'jquery-autocomplete', EME_PLUGIN_URL.'js/jquery-autocomplete/jquery.autocomplete.css' );
 		
 	}
 	
@@ -440,8 +464,7 @@ class EMEFS{
 	
 	function printScripts(){
 		if(!is_admin()){
-			wp_enqueue_script( 'jquery-ui-datepicker' );
-			wp_enqueue_script( 'jquery-timeentry' );
+			wp_enqueue_script( 'emefs' );
 		}
 	}
 	

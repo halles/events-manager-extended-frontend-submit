@@ -70,6 +70,32 @@
 			<?php EMEFS::error('event_url'); ?>
 		</div>
 		
+		<h3><?php _e('Location Information'); ?></h3>
+		
+		<div class="input">
+			<label for="location_name"><?php _e('Name'); ?></label>
+			<?php EMEFS::field('location_name'); ?>
+			<?php EMEFS::error('location_name'); ?>
+		</div>
+		
+		<div class="input">
+			<label for="location_name"><?php _e('Address'); ?></label>
+			<?php EMEFS::field('location_address'); ?>
+			<?php EMEFS::error('location_address'); ?>
+		</div>
+		
+		<div class="input">
+			<label for="location_name"><?php _e('City or Town'); ?></label>
+			<?php EMEFS::field('location_town'); ?>
+			<?php EMEFS::error('location_town'); ?>
+		</div>
+		
+		<div class="map">
+			<div id="event-map" style="height:400px; width: 100%;"></div>
+			<?php EMEFS::field('location_latitude'); ?>
+			<?php EMEFS::field('location_longitude'); ?>
+		</div>
+		
 		<p class="submit">
 			<?php EMEFS::end_form('Submit Event'); ?>
 		</p>
