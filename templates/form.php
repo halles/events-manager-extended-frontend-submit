@@ -1,8 +1,8 @@
 <div id="new_event_form">
-
-	<h2><?php _e('Event Information'); ?></h2>
-				
+			
 	<form id="new_post" name="new_post" method="post" action="<?php the_permalink(); ?>">
+	
+		<h2><?php _e('Event Information'); ?></h2>
 		
 		<div class="input">
 			<label for="title"><?php _e('Event Name'); ?> <small><?php _e('required'); ?></small></label><br />
