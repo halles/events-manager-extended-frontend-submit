@@ -12,7 +12,10 @@ form#new_post > fieldset{
 form#new_post #event_name, 
 form#new_post #event_notes,
 form#new_post #event_contactperson_email_body,
-form#new_post #event_url{
+form#new_post #event_url,
+form#new_post #location_name,
+form#new_post #location_address,
+form#new_post #location_town{
 	width: 96%;
 }
 
@@ -53,4 +56,10 @@ form#new_post span.error{
 	font-size: smaller;
 	font-weight: bold;
 	color: #C00;
+}
+
+form#new_post #event-map{
+	width: 97%;
+	height: 400px;
+	display: none;
 }

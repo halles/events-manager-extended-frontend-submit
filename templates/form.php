@@ -91,7 +91,7 @@
 		</div>
 		
 		<div class="map">
-			<div id="event-map" style="height:400px; width: 100%;"></div>
+			<div id="event-map"></div>
 			<?php EMEFS::field('location_latitude'); ?>
 			<?php EMEFS::field('location_longitude'); ?>
 		</div>
