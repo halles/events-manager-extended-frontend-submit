@@ -172,7 +172,7 @@ class EMEFS{
 				unset($emefs_event_data_compiled['action']);
 				
 				foreach($emefs_event_data_compiled as $key => $value){
-					if(strpos($key,'location') !== false){
+					if(strpos($key,'location') !== false && $key != 'location_id'){
 						unset($emefs_event_data_compiled[$key]);
 						$location_data[$key] = $value;
 					}
@@ -217,7 +217,7 @@ class EMEFS{
 		
 		if ( !empty($event_data['location_name']) && !empty($event_data['location_address']) && !empty($event_data['location_town'])) {
 		
-			$locations_table = $wpdb->prefix . 'locations';
+			$locations_table = $wpdb->prefix . 'dbem_locations';
 			$sql = sprintf("SELECT * FROM %s WHERE location_town = '%s' AND location_address = '%s'", $locations_table, $event_data['location_town'], $event_data['location_address']);
 			$location = $wpdb->get_row($sql, ARRAY_A);
 			
