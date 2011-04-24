@@ -480,17 +480,13 @@ class EMEFS{
 		}
 	}
 	
-	/**
-	 *  Prints script that starts up the Date and Time Pickers 
-	 *
-	 */
-	
-	function printDateTimeStartup() {
+	function printEMEFSStartUp() {
 	?>
 		<script type="text/javascript">
 		jQuery(document).ready( function($){
-			$("#event_start_date, #event_end_date").datepicker({ dateFormat: 'yy-mm-dd' });
-			$('#event_start_time, #event_end_time').timeEntry({ hourText: 'Hour', minuteText: 'Minute', show24Hours: true, spinnerImage: '' });
+			var emefs_autocomplete_url = "<?php bloginfo('url'); ?>/wp-content/plugins/events-manager-extended/locations-search.php";
+			var emefs_gmap_enabled = 1;
+			emefs_deploy();
 		});
 		</script>
 	<?php
@@ -509,4 +505,4 @@ function emefs_deploy_form( $atts, $content ) {	return EMEFS::deployForm( $atts,
 add_action( 'init', array('EMEFS', 'registerAssets') );
 add_action( 'wp_print_scripts', array('EMEFS', 'printScripts') );
 add_action( 'wp_print_styles', array('EMEFS', 'printStyles') );
-add_action( 'wp_footer', array('EMEFS','printDateTimeStartup'), 20 );
+add_action( 'wp_footer', array('EMEFS','printEMEFSStartUp'), 20 );
