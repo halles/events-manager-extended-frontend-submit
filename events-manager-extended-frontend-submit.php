@@ -267,6 +267,15 @@ class EMEFS{
 		}
 		ob_start();
 		require($filename);
+		?>
+		<script type="text/javascript">
+		jQuery(document).ready( function($){
+			var emefs_autocomplete_url = "<?php bloginfo('url'); ?>/wp-content/plugins/events-manager-extended/locations-search.php";
+			var emefs_gmap_enabled = 1;
+			emefs_deploy();
+		});
+		</script>
+		<?php
 		$form = ob_get_clean();
 		return $form;
 	}
@@ -479,18 +488,6 @@ class EMEFS{
 			wp_enqueue_style( 'jquery-ui-datepicker' );
 		}
 	}
-	
-	function printEMEFSStartUp() {
-	?>
-		<script type="text/javascript">
-		jQuery(document).ready( function($){
-			var emefs_autocomplete_url = "<?php bloginfo('url'); ?>/wp-content/plugins/events-manager-extended/locations-search.php";
-			var emefs_gmap_enabled = 1;
-			emefs_deploy();
-		});
-		</script>
-	<?php
-	}
 
 }
 
@@ -505,4 +502,3 @@ function emefs_deploy_form( $atts, $content ) {	return EMEFS::deployForm( $atts,
 add_action( 'init', array('EMEFS', 'registerAssets') );
 add_action( 'wp_print_scripts', array('EMEFS', 'printScripts') );
 add_action( 'wp_print_styles', array('EMEFS', 'printStyles') );
-add_action( 'wp_footer', array('EMEFS','printEMEFSStartUp'), 20 );
