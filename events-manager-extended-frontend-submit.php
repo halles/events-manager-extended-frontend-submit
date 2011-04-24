@@ -155,6 +155,8 @@ class EMEFS{
 			
 			$event_data['event_url'] = esc_url( $event_data['event_url'] );
 			
+			$event_data = self::processLocation($event_data);
+			
 			foreach($emefs_event_errors as $error){
 				if($error){
 					$emefs_has_errors = true;
@@ -169,6 +171,13 @@ class EMEFS{
 				$emefs_event_data_compiled['event_end_time'] .= ':00';
 				unset($emefs_event_data_compiled['action']);
 				
+				foreach($emefs_event_data_compiled as $key => $value){
+					if(strpos($key,'location') !== false){
+						unset($emefs_event_data_compiled[$key]);
+						$location_data[$key] = $value;
+					}
+				}
+
 				if($event_id = eme_db_insert_event($emefs_event_data_compiled)){
 					$events_page_id = get_option('eme_events_page' );
 					wp_redirect( get_permalink($events_page_id).'/success' );
@@ -186,67 +195,48 @@ class EMEFS{
 	}
 	
 	/** 
-	 *  Function that should process submitted location data.
-	 *  Right now, the form, nor the process, are ready for capturing this information
+	 *  Function that processes the data for a new location
 	 *  
 	 */
 	
-	function processLocation(){
+	function processLocation($event_data){
+	
+		global $wpdb;
 
-		if ( isset($_POST['location_name']) && '' != $_POST['location_name'] ) { 
-			$location_name = esc_attr( $_POST['location_name'] ); 
-		} else { 
-			$location_name = NULL; 
+		if ( isset($event_data['location_name']) && '' != $event_data['location_name'] ) {
+			$event_data['location_name'] = esc_attr( $event_data['location_name'] );
 		}
 		
-		if ( isset($_POST['location_address']) && '' != $_POST['location_address'] ) { 
-			$location_address = esc_attr( $_POST['location_address'] ); 
-		} else { 
-			$location_address = NULL; 
+		if ( isset($event_data['location_address']) && '' != $event_data['location_address'] ) {
+			$event_data['location_address'] = esc_attr( $event_data['location_address'] );
 		}
 		
-		if ( isset($_POST['location_town']) && '' != $_POST['location_town'] ) { 
-			$location_town = esc_attr( $_POST['location_town'] ); 
-		} else { 
-			$location_town = NULL; 
+		if ( isset($event_data['location_town']) && '' != $event_data['location_town'] ) {
+			$event_data['location_town'] = esc_attr( $event_data['location_town'] );
 		}
-		// optionale Felder
-		if ( isset($_POST['location_description']) && '' != $_POST['location_description'] ) { 
-			$location_description = esc_attr( $_POST['location_description'] ); 
-		} else { 
-			$location_description = NULL; 
-		}
-		$location_latitude = NULL;
-		$location_longitude = NULL;
 		
-		if ( isset($location_name) && isset($location_address) && isset($location_town) ) {
+		if ( !empty($event_data['location_name']) && !empty($event_data['location_address']) && !empty($event_data['location_town'])) {
+		
+			$locations_table = $wpdb->prefix . 'locations';
+			$sql = sprintf("SELECT * FROM %s WHERE location_town = '%s' AND location_address = '%s'", $locations_table, $event_data['location_town'], $event_data['location_address']);
+			$location = $wpdb->get_row($sql, ARRAY_A);
 			
-			$location = array (
-				'location_name' => $location_name,
-				'location_address' => $location_address,
-				'location_town' => $location_town,
-				'location_latitude' => $location_latitude,
-				'location_longitude' => $location_longitude,
-				'location_description' => $location_description
-			);
-			// get locations
-			$locations_table = $wpdb->prefix . LOCATIONS_TBNAME;
-			$location_town = $location['location_town'];
-			$location_address = $location['location_address'];
-			$sql = "SELECT * FROM $locations_table WHERE 
-				location_town = '$location_town' AND
-				location_address = '$location_address'";
-			$old_location = $wpdb->get_row($sql, ARRAY_A);
-			
-			if ( $old_location['location_id'] ) {
-				$new_location = $old_location;
-			} else {
-				$new_location = eme_insert_location($location);
+			if ( !$location['location_id'] ) {
+				$location = array (
+					'location_name' => $event_data['location_name'],
+					'location_address' => $event_data['location_address'],
+					'location_town' => $event_data['location_town'],
+					'location_latitude' => $event_data['location_latitude'],
+					'location_longitude' => $event_data['location_longitude'],
+				);
+				$location = eme_insert_location($location);
 			}
 			
-		} else {
-			$new_location['location_id'] = NULL;
+			$event_data['location_id'] = $location['location_id'];
+			
 		}
+		
+		return $event_data;
 	}
 	
 		
@@ -305,6 +295,12 @@ class EMEFS{
 		if(!$field || !isset($emefs_event_data[$field]))
 			return false;
 		
+		if(is_array($field)){
+			$field = $field[0];
+			$context = $field[1]; 
+		}else{
+			$context = 'event';
+		}
 		
 		switch($field){
 			case 'event_notes':
