@@ -77,7 +77,30 @@ $emefs_event_errors = array(
 
 $emefs_has_errors = false;
 
+$emefs_config = array(
+	'success_page' => false,
+	'auto_publish' => false,
+	'public_submit' => true,
+	'public_not_allowed_page' => false,
+);
+
 class EMEFS{
+
+	function loadConfig(){
+		global $emefs_config;
+		$config_filename = locate_template(array(
+			'events-manager-extended-frontend-submit/config.php',
+			'emefs/config.php',
+			'events-manager-extended/config.php',
+			'eme/config.php',
+		));
+		
+		if(!empty($config_filename)){
+			include($config_filename);
+			$emefs_config = array_merge($emefs_config, $config);
+		}
+		
+	}
 
 	/**
 	 * Function that processes the form submitted data.
@@ -493,6 +516,7 @@ class EMEFS{
 }
 
 /** Process Form Submited Data**/
+add_action('init', array('EMEFS', 'loadConfig'));
 add_action('init', array('EMEFS', 'processForm'), 2);
 
 /** Display Form Shortcode & Wrapper **/
