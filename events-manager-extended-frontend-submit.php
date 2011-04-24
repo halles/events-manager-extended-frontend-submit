@@ -111,9 +111,10 @@ class EMEFS{
 	
 		global $emefs_event_errors, $emefs_event_data, $emefs_has_errors, $emefs_config;
 		
-		if(!$emefs_config['success_page'])
+		if(!$emefs_config['success_page']){
 			return false;
-				
+		}
+			
 		if( 'POST' == $_SERVER['REQUEST_METHOD'] && !empty( $_POST['event']['action'] ) && wp_verify_nonce( $_POST['new-event'], 'action_new_event' ) ) {
 			
 			$hasErrors = false;
@@ -205,8 +206,7 @@ class EMEFS{
 				}
 
 				if($event_id = eme_db_insert_event($emefs_event_data_compiled)){
-					$events_page_id = get_option('eme_events_page' );
-					wp_redirect( get_permalink($events_page_id).'/success' );
+					wp_redirect(get_permalink($emefs_config['success_page']));
 					exit;
 				}else{
 					$emefs_has_errors = true;
