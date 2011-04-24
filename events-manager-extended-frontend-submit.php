@@ -250,7 +250,9 @@ class EMEFS{
 		
 		$filename = locate_template(array(
 			'events-manager-extended-frontend-submit/form.php',
-			'emefs/form.php'
+			'emefs/form.php',
+			'events-manager-extended/form.php',
+			'eme/form.php',
 		));
 		if(empty($filename)){
 			$filename = 'templates/form.php';
@@ -449,6 +451,8 @@ class EMEFS{
 		$style_filename = locate_template(array(
 			'events-manager-extended-frontend-submit/style.css',
 			'emefs/style.css',
+			'events-manager-extended/style.css',
+			'eme/style.css',
 		));
 		
 		if(empty($style_filename)){
