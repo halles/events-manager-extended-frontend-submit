@@ -1,6 +1,7 @@
 var emefs_page = 0;
 var emefs_autocomplete_url = "/wp-content/plugins/events-manager-extended/locations-search.php";
 var emefs_gmap_enabled = 1;
+var emefs_gmap_hasSelectedLocation = 0;
 
 var emefs_autocomplete_options = {
 	width: 260,
@@ -27,17 +28,25 @@ function emefs_deploy() {
 		item = eval("(" + data + ")"); 
 		jQuery('input#location_address').val(item.address);
 		jQuery('input#location_town').val(item.town);
-		if(emefs_gmap_enabled) {
-		   eventLocation = jQuery("input#location_name").val(); 
-		   eventTown = jQuery("input#location_town").val(); 
-		   eventAddress = jQuery("input#location_address").val();
-		   emefs_loadMap(eventLocation, eventTown, eventAddress)
-		} 
+		emefs_displayAddress();
 	});
 	
 	jQuery("#event_start_date, #event_end_date").datepicker({ dateFormat: 'yy-mm-dd' });
-	jQuery('#event_start_time, #event_end_time').timeEntry({ hourText: 'Hour', minuteText: 'Minute', show24Hours: true, spinnerImage: '' });	
+	jQuery('#event_start_time, #event_end_time').timeEntry({ hourText: 'Hour', minuteText: 'Minute', show24Hours: true, spinnerImage: '' });
 	
+	if(emefs_gmap_hasSelectedLocation){
+		emefs_displayAddress();
+	}
+	
+}
+
+function emefs_displayAddress(){
+	if(emefs_gmap_enabled) {
+	   eventLocation = jQuery("input#location_name").val(); 
+	   eventTown = jQuery("input#location_town").val(); 
+	   eventAddress = jQuery("input#location_address").val();
+	   emefs_loadMap(eventLocation, eventTown, eventAddress);
+	}
 }
 
 function emefs_loadMap(location, town, address){

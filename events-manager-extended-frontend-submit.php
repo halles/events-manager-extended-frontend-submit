@@ -259,9 +259,10 @@ class EMEFS{
 		require($filename);
 		?>
 		<script type="text/javascript">
-		jQuery(document).ready( function($){
-			var emefs_autocomplete_url = "<?php bloginfo('url'); ?>/wp-content/plugins/events-manager-extended/locations-search.php";
-			var emefs_gmap_enabled = 1;
+		jQuery(document).ready( function(){
+			emefs_autocomplete_url = "<?php bloginfo('url'); ?>/wp-content/plugins/events-manager-extended/locations-search.php";
+			emefs_gmap_enabled = 1;
+			emefs_gmap_hasSelectedLocation = <?php echo ($emefs_event_data['location_id'])?'1':'0'; ?>;
 			emefs_deploy();
 		});
 		</script>
