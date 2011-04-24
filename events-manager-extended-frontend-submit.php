@@ -109,7 +109,10 @@ class EMEFS{
 
 	function processForm(){
 	
-		global $emefs_event_errors, $emefs_event_data, $emefs_has_errors;
+		global $emefs_event_errors, $emefs_event_data, $emefs_has_errors, $emefs_config;
+		
+		if(!$emefs_config['success_page'])
+			return false;
 				
 		if( 'POST' == $_SERVER['REQUEST_METHOD'] && !empty( $_POST['event']['action'] ) && wp_verify_nonce( $_POST['new-event'], 'action_new_event' ) ) {
 			
@@ -269,7 +272,20 @@ class EMEFS{
 	 */
 	
 	function deployForm($atts, $content){
-		global $emefs_event_errors, $emefs_event_data;
+		global $emefs_event_errors, $emefs_event_data, $emefs_config;
+		
+		if(!$emefs_config['success_page']){
+			?>
+			<div class="emefs_error">
+				<h2><?php _e('Basic Configuration is Missing', 'emefs'); ?></h2>
+				<p>You have to configure the page where successful submissions will be redirected to.</p>
+				<p>
+					Please refer to <a href="https://github.com/halles/events-manager-extended-frontend-submit/wiki/Customization" title="Customization Page">Customization Page</a> in order to set the basic parameter with which <strong>Events Manager Extended Frontend Submit</strong> will run.
+				</p>
+			</div>
+			<?php
+			return false;
+		}
 		
 		$filename = locate_template(array(
 			'events-manager-extended-frontend-submit/form.php',
@@ -485,6 +501,7 @@ class EMEFS{
 		}
 		
 		wp_enqueue_style( 'emefs', $style_filename );
+		wp_enqueue_style( 'emefs-internal', WP_PLUGIN_URL.'/events-manager-extended-frontend-submit/templates/style.internal.css' );
 		wp_enqueue_style( 'jquery-ui-datepicker', EME_PLUGIN_URL.'js/jquery-ui-datepicker/ui.datepicker.css' );	
 		wp_enqueue_style( 'jquery-autocomplete', EME_PLUGIN_URL.'js/jquery-autocomplete/jquery.autocomplete.css' );
 		

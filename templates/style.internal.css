@@ -1,0 +1,27 @@
+div.emefs_error{
+	background-color: #fffbf1;
+	border-color: #feffc5;
+	border-style: solid;
+	border-width: 1px;
+	padding: 10px 15px;
+	margin-bottom: 10px;
+	color: black;
+}
+
+div.emefs_error h2{
+	margin-top: 5px;
+	color: black;
+}
+
+div.emefs_error p{
+	margin-bottom: 5px;
+	color: black;
+}
+
+div.emefs_error p a{
+	color: #0481B5;
+}
+
+div.emefs_error p a:hover{
+	color: #039fdf;
+}
