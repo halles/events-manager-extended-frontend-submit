@@ -533,7 +533,7 @@ class EMEFS{
 }
 
 /** Process Form Submited Data**/
-add_action('init', array('EMEFS', 'loadConfig'));
+add_action('init', array('EMEFS', 'loadConfig'), 1);
 add_action('init', array('EMEFS', 'processForm'), 2);
 
 /** Display Form Shortcode & Wrapper **/
