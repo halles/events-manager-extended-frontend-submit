@@ -82,24 +82,74 @@ $emefs_config = array(
 	'auto_publish' => false,
 	'public_submit' => true,
 	'public_not_allowed_page' => false,
+	'enabled' => false, // Do not override
+	'display_notice' => false, // Do not override
 );
 
 class EMEFS{
 
-	function loadConfig(){
+	/**
+	 * Function that loads up configuration, sets up hooks, and all, on the condition that EME is activated as well.
+	 *
+	 **/
+	
+	function init(){
 		global $emefs_config;
-		$config_filename = locate_template(array(
-			'events-manager-extended-frontend-submit/config.php',
-			'emefs/config.php',
-			'events-manager-extended/config.php',
-			'eme/config.php',
-		));
 		
-		if(!empty($config_filename)){
-			include($config_filename);
-			$emefs_config = array_merge($emefs_config, $config);
+		if(in_array('events-manager-extended/events-manager.php', apply_filters('active_plugins', get_option( 'active_plugins' )))){
+			$emefs_config['enabled'] = true;
+		}else{
+			$emefs_config['display_notice'] = true;
 		}
 		
+		if(!is_admin() && $emefs_config['enabled']){
+		
+			/** Process Form Submited Data**/
+			add_action('init', array('EMEFS', 'processForm'), 2);
+			
+			/** Display Form Shortcode & Wrapper **/
+			add_shortcode( 'submit_event_form', array(__CLASS__, 'deployForm'));
+				
+			/** Scripts and Styles **/
+			add_action( 'init', array(__CLASS__, 'registerAssets') );
+			add_action( 'wp_print_scripts', array(__CLASS__, 'printScripts') );
+			add_action( 'wp_print_styles', array(__CLASS__, 'printStyles') );
+			
+			$config_filename = locate_template(array(
+				'events-manager-extended-frontend-submit/config.php',
+				'emefs/config.php',
+				'events-manager-extended/config.php',
+				'eme/config.php',
+			));
+			
+			if(!empty($config_filename)){
+				include($config_filename);
+				$emefs_config = array_merge($emefs_config, $config);
+			}
+			
+		
+		}else{
+		
+			/** Dependencies Notice **/
+			
+			add_action('admin_notices', array('EMEFS', 'do_dependencies_notice'));
+		
+		}
+		
+	}
+	
+	/**
+	 * Tells user to activate EME before using EMEFS
+	 *
+	 **/
+	
+	function do_dependencies_notice(){
+		global $emefs_config;
+		
+		if($emefs_config['display_notice'] == true){
+			$message = __( "The Events Manager Extended Frontend Submit plugin is an extension to the Events Manager Extended, which has to be installed and activated first. The plugin has been deactivated." );
+			echo sprintf('<div class="error"><p>%s</p></div>', $message);
+		}
 	}
 
 	/**
@@ -475,7 +525,8 @@ class EMEFS{
 	 */
 
 	function registerAssets(){
-		
+		global $emefs_config;
+
 		wp_register_script( 'jquery-ui-datepicker', EME_PLUGIN_URL.'js/jquery-ui-datepicker/ui.datepicker.js', array('jquery-ui-core'));
 		wp_register_script( 'jquery-timeentry', EME_PLUGIN_URL.'js/timeentry/jquery.timeentry.js', array('jquery'));
 		
@@ -500,10 +551,10 @@ class EMEFS{
 			$style_filename = get_bloginfo('url').'/'.str_replace(ABSPATH, '', $style_filename);
 		}
 		
-		wp_enqueue_style( 'emefs', $style_filename );
-		wp_enqueue_style( 'emefs-internal', WP_PLUGIN_URL.'/events-manager-extended-frontend-submit/templates/style.internal.css' );
-		wp_enqueue_style( 'jquery-ui-datepicker', EME_PLUGIN_URL.'js/jquery-ui-datepicker/ui.datepicker.css' );	
-		wp_enqueue_style( 'jquery-autocomplete', EME_PLUGIN_URL.'js/jquery-autocomplete/jquery.autocomplete.css' );
+		wp_register_style( 'emefs', $style_filename );
+		wp_register_style( 'emefs-internal', WP_PLUGIN_URL.'/events-manager-extended-frontend-submit/templates/style.internal.css');
+		wp_register_style( 'jquery-ui-datepicker', EME_PLUGIN_URL.'js/jquery-ui-datepicker/ui.datepicker.css');
+		wp_register_style( 'jquery-autocomplete', EME_PLUGIN_URL.'js/jquery-autocomplete/jquery.autocomplete.css');
 		
 	}
 	
@@ -525,22 +576,13 @@ class EMEFS{
 	
 	function printStyles(){
 		if(!is_admin()){
-			wp_enqueue_style( 'emefs' );
-			wp_enqueue_style( 'jquery-ui-datepicker' );
+			wp_enqueue_style('emefs');
+			wp_enqueue_style('emefs-internal');
+			wp_enqueue_style('jquery-ui-datepicker');
+			wp_enqueue_style('jquery-autocomplete');
 		}
 	}
 
 }
 
-/** Process Form Submited Data**/
-add_action('init', array('EMEFS', 'loadConfig'), 1);
-add_action('init', array('EMEFS', 'processForm'), 2);
-
-/** Display Form Shortcode & Wrapper **/
-add_shortcode( 'submit_event_form', 'emefs_deploy_form');
-function emefs_deploy_form( $atts, $content ) {	return EMEFS::deployForm( $atts, $content); }
-
-/** Scripts and Styles **/
-add_action( 'init', array('EMEFS', 'registerAssets') );
-add_action( 'wp_print_scripts', array('EMEFS', 'printScripts') );
-add_action( 'wp_print_styles', array('EMEFS', 'printStyles') );
+add_action('init', array('EMEFS', 'init'), 1);
