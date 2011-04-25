@@ -4,7 +4,7 @@ Plugin Name: Events Manager Extended Frontend Submit
 Plugin URI: https://github.com/halles/events-manager-extended-frontend-submit/
 Description: Displays a form in a page where users can submit events for publishing. Heavily Based on Code from malo.conny at http://bueltge.de/
 Author: Matías Halles
-Version: 0.2.0
+Version: 0.3.0
 Author URI: http://halles.cl/
 License: GNU General Public License
 */
