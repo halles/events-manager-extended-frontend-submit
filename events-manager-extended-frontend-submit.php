@@ -103,18 +103,7 @@ class EMEFS{
 		}
 		
 		if(!is_admin() && $emefs_config['enabled']){
-		
-			/** Process Form Submited Data**/
-			add_action('init', array('EMEFS', 'processForm'), 2);
-			
-			/** Display Form Shortcode & Wrapper **/
-			add_shortcode( 'submit_event_form', array(__CLASS__, 'deployForm'));
-				
-			/** Scripts and Styles **/
-			add_action( 'init', array(__CLASS__, 'registerAssets') );
-			add_action( 'wp_print_scripts', array(__CLASS__, 'printScripts') );
-			add_action( 'wp_print_styles', array(__CLASS__, 'printStyles') );
-			
+								
 			$config_filename = locate_template(array(
 				'events-manager-extended-frontend-submit/config.php',
 				'emefs/config.php',
@@ -127,15 +116,38 @@ class EMEFS{
 				$emefs_config = array_merge($emefs_config, $config);
 			}
 			
+			add_action('template_redirect', array(__CLASS__, 'pageHasForm'));
+			
+			self::processForm();
+			self::registerAssets();
 		
 		}else{
 		
 			/** Dependencies Notice **/
 			
-			add_action('admin_notices', array('EMEFS', 'do_dependencies_notice'));
+			add_action('admin_notices', array(__CLASS__, 'do_dependencies_notice'));
 		
 		}
 		
+	}
+	
+	function pageHasForm() { 
+		global $wp_query, $emefs_config;
+		if ( is_page() || is_single() ) {
+			$post = $wp_query->get_queried_object();
+			if ( false !== strpos($post->post_content, '[submit_event_form]') ) {
+				if(!$emefs_config['public_submit'] && !current_user_can('edit_posts')){
+					wp_redirect(get_permalink($emefs_config['public_not_allowed_page']));
+				}
+				
+				/** Display Form Shortcode & Wrapper **/
+				add_shortcode( 'submit_event_form', array(__CLASS__, 'deployForm'));
+				
+				/** Scripts and Styles **/
+				add_action( 'wp_print_scripts', array(__CLASS__, 'printScripts') );
+				add_action( 'wp_print_styles', array(__CLASS__, 'printStyles') );
+			}
+		}
 	}
 	
 	/**
@@ -338,7 +350,20 @@ class EMEFS{
 				<h2><?php _e('Basic Configuration is Missing', 'emefs'); ?></h2>
 				<p>You have to configure the page where successful submissions will be redirected to.</p>
 				<p>
-					Please refer to <a href="https://github.com/halles/events-manager-extended-frontend-submit/wiki/Customization" title="Customization Page">Customization Page</a> in order to set the basic parameter with which <strong>Events Manager Extended Frontend Submit</strong> will run.
+					Please refer to the <a href="https://github.com/halles/events-manager-extended-frontend-submit/wiki/Customization" title="Customization Page">Customization Page</a> in order to set the basic parameter with which <strong>Events Manager Extended Frontend Submit</strong> will run.
+				</p>
+			</div>
+			<?php
+			return false;
+		}
+		
+		if(!$emefs_config['public_submit'] && !$emefs_config['public_not_allowed_page']){
+			?>
+			<div class="emefs_error">
+				<h2><?php _e('Basic Configuration is Missing', 'emefs'); ?></h2>
+				<p>Since you have chosen no to accept public submissions. You have to select a page where to redirect unauthorized users.</p>
+				<p>
+					Please refer to the <a href="https://github.com/halles/events-manager-extended-frontend-submit/wiki/Customization" title="Customization Page">Customization Page</a> in order to set the basic parameter with which <strong>Events Manager Extended Frontend Submit</strong> will run.
 				</p>
 			</div>
 			<?php
