@@ -260,7 +260,11 @@ class EMEFS{
 				}
 
 				if($event_id = eme_db_insert_event($emefs_event_data_compiled)){
-					wp_redirect(get_permalink($emefs_config['success_page']));
+					if($emefs_config['auto_publish']){
+						wp_redirect(html_entity_decode(eme_event_url(eme_get_event($event_id))));
+					}else{
+						wp_redirect(get_permalink($emefs_config['success_page']));
+					}
 					exit;
 				}else{
 					$emefs_has_errors = true;
