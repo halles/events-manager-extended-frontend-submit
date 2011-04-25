@@ -254,6 +254,10 @@ class EMEFS{
 						$location_data[$key] = $value;
 					}
 				}
+				
+				if($emefs_config['auto_publish']){
+					$emefs_event_data_compiled['event_status'] = $emefs_config['auto_publish'];
+				}
 
 				if($event_id = eme_db_insert_event($emefs_event_data_compiled)){
 					wp_redirect(get_permalink($emefs_config['success_page']));
