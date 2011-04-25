@@ -331,7 +331,7 @@ class EMEFS{
 	 *
 	 */
 	
-	function field($field = false, $type = 'text', $field_id = false){
+	function field($field = false, $type = 'text', $field_id = false, $more = null){
 		global $emefs_event_data;
 		
 		if(!$field || !isset($emefs_event_data[$field]))
